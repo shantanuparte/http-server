@@ -6,12 +6,11 @@
 #include <string.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-
 #define MY_PORT "6969"
 #define PENDING 23 // just my favriote number
 
-
-void con_bint_str_ip(struct addrinfo *s, char *res){
+void con_bint_str_ip(struct addrinfo *s, char *res)
+{
 
     struct sockaddr_in *ipv4;
     struct sockaddr_in6 *ipv6;
@@ -19,16 +18,16 @@ void con_bint_str_ip(struct addrinfo *s, char *res){
 
     if (s->ai_family == AF_INET)
     {
-        ipv4 = (struct sockaddr_in*)s->ai_addr;
+        ipv4 = (struct sockaddr_in *)s->ai_addr;
         addr = &(ipv4->sin_addr);
-        
-    }else{
-        ipv6 = (struct sockaddr_in6*)s->ai_addr;
+    }
+    else
+    {
+        ipv6 = (struct sockaddr_in6 *)s->ai_addr;
         addr = &(ipv6->sin6_addr);
     }
-    
-    inet_ntop(s->ai_family, addr, res, INET6_ADDRSTRLEN);
 
+    inet_ntop(s->ai_family, addr, res, INET6_ADDRSTRLEN);
 }
 
 int get_listining_socket()
@@ -62,7 +61,6 @@ int get_listining_socket()
         printf("Error in socket function\n");
         return -1;
     }
-    
 
     if (bind(sock_fd, server_info->ai_addr, server_info->ai_addrlen) != 0)
     {
@@ -76,13 +74,11 @@ int get_listining_socket()
         return -1;
     }
 
-    
-
     char ipstr[INET6_ADDRSTRLEN];
     con_bint_str_ip(server_info, ipstr);
 
-    printf("Server running on %s : %s\n",ipstr,MY_PORT);
-    
+    printf("Server running on %s : %s\n", ipstr, MY_PORT);
+
     freeaddrinfo(server_info);
 
     return sock_fd;
