@@ -1,63 +1,80 @@
 
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
-#include <sys/types.h>
 #include <sys/socket.h>
-#include <errno.h>
+#include <stdlib.h>
 
 #include "client.h"
 
-#define BUFF_SIZE 1024
-
 void handle_client(int client_fd)
 {
-    char buff[BUFF_SIZE];
+    char request[1024];
 
-    while (1)
+    // Read the request
+    int bytes = recv(client_fd, request, sizeof(request) - 1, 0);
+
+    if (bytes <= 0)
+        return;
+    
+    request[bytes] = '\0';
+
+    printf("Request received:\n%s\n", request);
+
+    if (strncmp(request, "GET / ", 6) != 0 &&
+        strncmp(request, "GET /index.html ", 16) != 0)
     {
-        ssize_t byte_recv = recv(
-            client_fd,
-            buff,
-            sizeof(buff),
-            0
-        );
+        char response[] =
+            "HTTP/1.1 404 Not Found\r\n"
+            "Content-Type: text/html\r\n"
+            "Connection: close\r\n"
+            "\r\n"
+            "<h1>404 - Page not found</h1>";
 
-        if (byte_recv == 0)
-        {
-            printf("Client disconnected.\n");
-            break;
-        }
-
-        if (byte_recv == -1)
-        {
-            if (errno == EINTR)
-                continue;
-
-            perror("recv");
-            break;
-        }
-
-        ssize_t total_sent = 0;
-
-        while (total_sent < byte_recv)
-        {
-            ssize_t bytes_sent = send(
-                client_fd,
-                buff + total_sent,
-                (size_t)(byte_recv - total_sent),
-                0
-            );
-
-            if (bytes_sent == -1 && errno == EINTR)
-                continue;
-
-            if (bytes_sent <= 0)
-            {
-                perror("send");
-                return;
-            }
-
-            total_sent += bytes_sent;
-        }
+        send(client_fd, response, strlen(response), 0);
+        return;
     }
+
+    FILE *file = fopen("../index.html", "r");
+
+    if (file == NULL)
+    {
+        char response[] =
+            "HTTP/1.1 500 Internal Server Error\r\n"
+            "Content-Type: text/html\r\n"
+            "Connection: close\r\n"
+            "\r\n"
+            "<h1>Could not open index.html</h1>";
+
+        send(client_fd, response, strlen(response), 0);
+        return;
+    }
+
+    char page[4096];
+
+    size_t size = fread(page, 1, sizeof(page), file);
+    fclose(file);
+
+ 
+    char header[256];
+
+    int header_size = snprintf(
+        header,
+        sizeof(header),
+        "HTTP/1.1 200 OK\r\n"
+        "Content-Type: text/html\r\n"
+        "Content-Length: %zu\r\n"
+        "Connection: close\r\n"
+        "\r\n",
+        size);
+
+    send(client_fd, header, header_size, 0);
+
+
+    send(client_fd, page, size, 0);
 }
+
+
+
+
+
