@@ -11,8 +11,3 @@ add_executable(server
     src/sig.c
 )
 
-target_compile_options(server PRIVATE
-    -Wall
-    -Wextra
-    -Wpedantic
-)
