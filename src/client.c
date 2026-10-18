@@ -35,7 +35,7 @@ void handle_client(int client_fd)
         return;
     }
 
-    FILE *file = fopen("../index.html", "r");
+    FILE *file = fopen("index.html", "r");
 
     if (file == NULL)
     {

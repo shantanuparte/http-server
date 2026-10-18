@@ -1,3 +1,0 @@
-/home/shantanu/Desktop/c project/http server/build/CMakeFiles/server.dir
-/home/shantanu/Desktop/c project/http server/build/CMakeFiles/edit_cache.dir
-/home/shantanu/Desktop/c project/http server/build/CMakeFiles/rebuild_cache.dir

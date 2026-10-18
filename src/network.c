@@ -58,13 +58,20 @@ int get_listining_socket()
 
     if ((sock_fd = socket(server_info->ai_family, server_info->ai_socktype, server_info->ai_protocol)) == -1)
     {
-        printf("Error in socket function\n");
+        perror("socket");
+        return -1;
+    }
+
+    int yes = 1;
+    if (setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes) == -1)
+    {
+        perror("setsockopt");
         return -1;
     }
 
     if (bind(sock_fd, server_info->ai_addr, server_info->ai_addrlen) != 0)
     {
-        printf("Error in binding\n");
+        perror("bind");
         return -1;
     }
 
