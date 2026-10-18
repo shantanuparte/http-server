@@ -16,7 +16,7 @@ void handle_client(int client_fd)
 
     if (bytes <= 0)
         return;
-    
+
     request[bytes] = '\0';
 
     printf("Request received:\n%s\n", request);
@@ -55,7 +55,6 @@ void handle_client(int client_fd)
     size_t size = fread(page, 1, sizeof(page), file);
     fclose(file);
 
- 
     char header[256];
 
     int header_size = snprintf(
@@ -70,11 +69,5 @@ void handle_client(int client_fd)
 
     send(client_fd, header, header_size, 0);
 
-
     send(client_fd, page, size, 0);
 }
-
-
-
-
-

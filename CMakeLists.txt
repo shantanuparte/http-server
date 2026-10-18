@@ -1,0 +1,18 @@
+cmake_minimum_required(VERSION 3.16)
+
+project(http_server C)
+
+set(CMAKE_C_STANDARD 11) 
+
+add_executable(server
+    src/main.c
+    src/network.c
+    src/client.c
+    src/sig.c
+)
+
+target_compile_options(server PRIVATE
+    -Wall
+    -Wextra
+    -Wpedantic
+)
