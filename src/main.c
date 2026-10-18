@@ -1,74 +1,65 @@
 
 #include <stdio.h>
-#include <sys/socket.h>
-#include <sys/types.h>
 #include <unistd.h>
-#include <string.h>
-#include "network.h"
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <errno.h>
 
-#define buff_SIZE 1024
+#include "network.h"
+#include "client.h"
+#include "sig.h"
 
 int main(void)
 {
-    printf("Welcome to the TCP echo server!\n\n");
+    printf("Welcome to the http server\n\n");
+
+    if (set_sig_handler() == -1)
+    {
+        perror("sigaction");
+        
+        return 1;
+    }
 
     int server_fd = get_listining_socket();
 
     if (server_fd == -1)
         return 1;
 
-    int client_fd = accept(server_fd, NULL, NULL);
-
-    if (client_fd == -1)
-    {
-        perror("accept");
-        close(server_fd);
-        return 1;
-    }
-
-    printf("Client connected!\n");
-
-    char buff[buff_SIZE];
-
     while (1)
     {
-        ssize_t byte_recv = recv(client_fd, buff, sizeof(buff), 0);
+        int client_fd = accept(server_fd, NULL, NULL);
 
-        if (byte_recv == 0)
+        if (client_fd == -1)
         {
-            printf("Client disconected.\n");
-            break;
+            if (errno == EINTR)
+                continue;
+
+            perror("accept");
+            continue;
         }
 
-        if (byte_recv == -1)
+        pid_t pid = fork();
+
+        if (pid == -1)
         {
-            perror("recv");
-            break;
+            perror("fork");
+            close(client_fd);
+            continue;
         }
 
-        ssize_t total_sent = 0;
-
-        while (total_sent < byte_recv)
+        if (pid == 0)
         {
-            ssize_t bytes_sent = send(
-                client_fd,
-                buff + total_sent,
-                (size_t)(byte_recv - total_sent),
-                0);
+            close(server_fd);
 
-            if (bytes_sent <= 0)
-            {
-                perror("send");
-                goto cleanup;
-            }
+            handle_client(client_fd);
 
-            total_sent += bytes_sent;
+            close(client_fd);
+            _exit(0);
         }
+
+        close(client_fd);
     }
 
-cleanup:
-    close(client_fd);
     close(server_fd);
-
     return 0;
 }

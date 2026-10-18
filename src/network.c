@@ -32,7 +32,7 @@ void con_bint_str_ip(struct addrinfo *s, char *res)
 
 int get_listining_socket()
 {
-
+    
     struct addrinfo hints, *server_info;
 
     memset(&hints, 0, sizeof hints);
@@ -83,3 +83,5 @@ int get_listining_socket()
 
     return sock_fd;
 }
+
+
